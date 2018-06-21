@@ -12,10 +12,12 @@ with the -O flag (or higher) to strip assertions.
  - Access to "old" values in post-conditions
  - Implement functionality with built-in assert statement
  - More information in exceptions via function docstrings
+ - Invariants which run on __setattr__ and __next__
 
-## Todo
+## Limitations
 
- - Invariants
+ - Python 3 only.
+ - Cannot inherit from invariant classes
 
 ## License
 

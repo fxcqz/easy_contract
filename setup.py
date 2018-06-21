@@ -9,24 +9,18 @@ with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='easy_contract',
-    version='0.1.0',
+    version='0.2.0',
     description='Easy contract-based programming',
     long_description=long_description,
     long_description_content_type='text/markdown',
-    # TODO upload to github before pypi
-    #url='',
+    url='https://github.com/fxcqz/easy_contract',
     author='Matt Rawcliffe',
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
         'Topic :: Software Development :: Quality Assurance',
         'License :: OSI Approved :: MIT License',
-        # TODO check these
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
     ],
     keywords='contract programming',

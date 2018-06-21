@@ -3,6 +3,10 @@ from inspect import getargspec
 
 
 class contract(object):
+    """
+    Mark a function as a contract. Pre and post conditions can be subsequently
+    defined for this contract.
+    """
     def __init__(self, fn):
         self.main = fn
         self.pre_funcs = []
@@ -67,3 +71,89 @@ class contract(object):
         # Assertions can't run, so don't even try
         def __call__(self, *args, **kwargs):
             return self.main(*args, **kwargs)
+
+
+def _make_invariant(fn, *, predicate=None):
+    """
+    Wrapper for calling cls.__invariant__ before and after calls to fn.
+    If a predicate is supplied, it must return true for __invariant__ to run
+    before the call to fn.
+    """
+    def wrapper(self, *args, **kwargs):
+        if predicate is None or (predicate and predicate(self, args)):
+            # useful for a first time run of __setattr__ where the attribute
+            # does not exist on the instance yet
+            self.__invariant__()
+
+        result = fn(self, *args, **kwargs)
+
+        if predicate is None or (predicate and predicate(self, args)):
+            self.__invariant__()
+
+        return result
+    return wrapper
+
+
+def _wrap__init__(fn):
+    def wrapper(self, *args, **kwargs):
+        result = fn(self, *args, **kwargs)
+        self._ezcontract_in__init__method = False
+        return result
+    return wrapper
+
+
+def _super__init__(self, *args, **kwargs):
+    return super(self.__class__, self).__init__(*args, **kwargs)
+
+
+class Invariant(type):
+    """
+    Ensure an invariant method is run at opportune moments on a class.
+
+    Supports __setattr__ and the iterator protocol (which requires the two
+    functions __next__ and __iter__ to be defined).
+
+    By default, __invariant__ will not be called during the __init__ function
+    due to usability issues with __setattr__. To override this functionality,
+    pass the 'check_init' metaclass kwarg to the class, e.g:
+
+    >>> class Test(metaclass=Invariant, check_init=True): pass
+    """
+    @staticmethod
+    def _default__setattr__(self, name, value):
+        super(self.__class__, self).__setattr__(name, value)
+
+    @classmethod
+    def _in__init__predicate(cls, self, args):
+        # Use 'not' because it has to return true to run the predicate
+        return not getattr(self, '_ezcontract_in__init__method', False)
+
+    @classmethod
+    def identity_predicate(cls, self, args):
+        return True
+
+    def __new__(cls, name, bases, attrs, *, check_init=False):
+        if '__invariant__' not in attrs:
+            raise Exception(f'Missing __invariant__ function for Invariant class {name}')
+
+        if __debug__:
+            if not '__setattr__' in attrs:
+                attrs['__setattr__'] = Invariant._default__setattr__
+
+            attrs['_ezcontract_in__init__method'] = True
+            attrs['__init__'] = _wrap__init__(attrs.get('__init__', _super__init__))
+
+            if check_init:
+                predicate = Invariant.identity_predicate
+            else:
+                predicate = Invariant._in__init__predicate
+
+            attrs['__setattr__'] = _make_invariant(
+                attrs['__setattr__'], predicate=predicate,
+            )
+
+            if '__next__' in attrs and '__iter__' in attrs:
+                # support __invariant__ for iterators
+                attrs['__next__'] = _make_invariant(attrs['__next__'])
+
+        return super(Invariant, cls).__new__(cls, name, bases, attrs)
