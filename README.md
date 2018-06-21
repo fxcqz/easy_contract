@@ -17,7 +17,6 @@ with the -O flag (or higher) to strip assertions.
 ## Limitations
 
  - Python 3 only.
- - Cannot inherit from invariant classes
 
 ## License
 
