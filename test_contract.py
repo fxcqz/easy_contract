@@ -89,6 +89,15 @@ class IteratorInvariant(metaclass=Invariant):
             self.current += 1
             return result
 
+    def __setattr__(self, name, value):
+        super().__setattr__(name, value)
+
+
+class NoInitIteratorInvariant(IteratorInvariant):
+    def __invariant__(self):
+        assert self.current % 2 == 0, \
+            "An intermediate value is not divisible by two."
+
 
 class Base(object):
     def __init__(self):
@@ -161,6 +170,18 @@ class InvariantTestCase(unittest.TestCase):
 
         with self.assertRaisesRegex(AssertionError, "N must be divisible by two."):
             inv = CheckedInitInvariant(3)
+
+    def test_no_init_iterator_invariant_correct(self):
+        inv = NoInitIteratorInvariant(True)
+        self.assertEqual([x for x in inv], [0, 2, 4, 6, 8, 10])
+
+    def test_no_init_iterator_invariant_incorrect(self):
+        inv = NoInitIteratorInvariant(False)
+        with self.assertRaisesRegex(
+            AssertionError,
+            "An intermediate value is not divisible by two."
+        ):
+            xs = [x for x in inv]
 
 
 if __name__ == '__main__':

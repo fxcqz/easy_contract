@@ -106,6 +106,10 @@ def _super__init__(self, *args, **kwargs):
     return super(self.__class__, self).__init__(*args, **kwargs)
 
 
+def _default__setattr__(self, name, value):
+    super(self.__class__, self).__setattr__(name, value)
+
+
 class Invariant(type):
     """
     Ensure an invariant method is run at opportune moments on a class.
@@ -134,14 +138,17 @@ class Invariant(type):
 
     def __new__(cls, name, bases, attrs, *, check_init=False):
         if '__invariant__' not in attrs:
-            raise Exception(f'Missing __invariant__ function for Invariant class {name}')
+            raise Exception(
+                f'Missing __invariant__ function for Invariant class {name}'
+            )
 
         if __debug__:
             if not '__setattr__' in attrs:
-                attrs['__setattr__'] = Invariant._default__setattr__
+                attrs['__setattr__'] = _default__setattr__
 
             attrs['_ezcontract_in__init__method'] = True
-            attrs['__init__'] = _wrap__init__(attrs.get('__init__', _super__init__))
+            attrs['__init__'] = _wrap__init__(attrs.get('__init__',
+                                              _super__init__))
 
             if check_init:
                 predicate = Invariant.identity_predicate
