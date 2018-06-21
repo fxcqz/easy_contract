@@ -8,14 +8,14 @@ from easy_contract import contract, Invariant
 def foo(x, y):
     return x + y
 
-@foo.pre
+@foo.requires
 def foo_pre(x, y):
     assert any((
         (x % 2 == 0 and y % 2 == 0),
         (x % 2 != 0 and y % 2 != 0),
     ))
 
-@foo.post
+@foo.ensures
 def foo_post(r, old):
     x, y = old['x'], old['y']
     assert r == x + y
@@ -34,12 +34,12 @@ class Klass(object):
     def bar(self, i, j, k):
         return i * j * k
 
-    @bar.post
+    @bar.ensures
     def bar_post(self, r, old):
         i, j, k = old['i'], old['j'], old['k']
         assert r == i * j * k
 
-    @bar.pre
+    @bar.requires
     def bar_pre(self, i, j, k):
         assert all(isinstance(x, float) for x in (i, j, k))
 

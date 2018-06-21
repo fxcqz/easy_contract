@@ -14,11 +14,11 @@ class contract(object):
         self.fargs = getargspec(self.main).args
         self.instance = None
 
-    def pre(self, fn):
+    def requires(self, fn):
         'Register a pre condition'
         self.pre_funcs.append(fn)
 
-    def post(self, fn):
+    def ensures(self, fn):
         'Register a post condition'
         self.post_funcs.append(fn)
 
@@ -49,7 +49,7 @@ class contract(object):
                 try:
                     func(*args, **kwargs)
                 except AssertionError as e:
-                    raise AssertionError(self.make_error(func, 'pre', e))
+                    raise AssertionError(self.make_error(func, 'requires', e))
 
             result = self.main(*args, **kwargs)
 
@@ -64,7 +64,7 @@ class contract(object):
                     try:
                         func(*params, **kw_params)
                     except AssertionError as e:
-                        raise AssertionError(self.make_error(func, 'post', e))
+                        raise AssertionError(self.make_error(func, 'ensures', e))
 
             return result
     else:
