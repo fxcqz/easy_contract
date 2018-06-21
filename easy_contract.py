@@ -123,10 +123,6 @@ class Invariant(type):
 
     >>> class Test(metaclass=Invariant, check_init=True): pass
     """
-    @staticmethod
-    def _default__setattr__(self, name, value):
-        super(self.__class__, self).__setattr__(name, value)
-
     @classmethod
     def _in__init__predicate(cls, self, args):
         # Use 'not' because it has to return true to run the predicate
